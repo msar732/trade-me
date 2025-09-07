@@ -196,13 +196,46 @@ class AdvancedRecommendationEngine:
         return combined_recs
     
     def get_collaborative_recommendations(self, user, limit):
-        """Get collaborative filtering recommendations"""
-        if not self.collaborative_model:
-            return []
+        """Get collaborative recommendations using co-occurrence of interactions."""
+        from ai_engine.models import UserInteraction
         
-        # Implementation would use the trained collaborative model
-        # This is a simplified version
-        return []
+        # Items the user has already interacted with
+        user_item_ids = list(
+            UserInteraction.objects.filter(user=user)
+            .values_list('object_id', flat=True)
+            .distinct()
+        )
+        if not user_item_ids:
+            return self.get_popular_items(limit)
+        
+        # Find neighbor users who interacted with the same items
+        neighbor_user_ids = list(
+            UserInteraction.objects.filter(object_id__in=user_item_ids)
+            .exclude(user=user)
+            .values_list('user_id', flat=True)
+            .distinct()
+        )
+        if not neighbor_user_ids:
+            return self.get_popular_items(limit)
+        
+        # Aggregate candidate item scores from neighbor users' interactions
+        weights_by_type = {'view': 1.0, 'favorite': 3.0, 'contact': 5.0, 'purchase': 10.0}
+        candidate_scores = {}
+        neighbor_interactions = (
+            UserInteraction.objects
+            .filter(user_id__in=neighbor_user_ids)
+            .exclude(object_id__in=user_item_ids)
+        )
+        for interaction in neighbor_interactions.iterator():
+            weight = weights_by_type.get(getattr(interaction, 'interaction_type', 'view'), 1.0)
+            candidate_scores[interaction.object_id] = candidate_scores.get(interaction.object_id, 0.0) + weight
+        
+        if not candidate_scores:
+            return self.get_popular_items(limit)
+        
+        # Rank by score and return top item IDs
+        ranked_items = sorted(candidate_scores.items(), key=lambda kv: kv[1], reverse=True)
+        return [item_id for item_id, _ in ranked_items[:limit]]
     
     def get_content_recommendations(self, user, limit):
         """Get content-based recommendations"""
@@ -245,6 +278,62 @@ class AdvancedRecommendationEngine:
         top_items = np.argsort(predictions[0])[-limit:][::-1]
         
         return top_items.tolist()
+    
+    def find_similar_items(self, item_id, limit):
+        """Find items similar in content using TF-IDF cosine similarity."""
+        if not self.content_model:
+            return []
+        
+        try:
+            listings = self.content_model['listings']
+            features = self.content_model['features']
+            item_index = listings.index(item_id)
+        except (KeyError, ValueError):
+            return []
+        
+        # Compute similarity scores
+        similarity_scores = cosine_similarity(features[item_index], features).flatten()
+        # Sort indices by similarity descending, excluding the item itself
+        similar_indices = np.argsort(similarity_scores)[::-1]
+        
+        similar_items = []
+        for idx in similar_indices:
+            if idx == item_index:
+                continue
+            similar_items.append(listings[idx])
+            if len(similar_items) >= limit:
+                break
+        return similar_items
+    
+    def get_popular_items(self, limit):
+        """Get popular items based on recent weighted interactions."""
+        from ai_engine.models import UserInteraction
+        from listings.models import BaseListing
+        
+        # Use recent interactions to compute trend/popularity
+        recent_interactions = UserInteraction.objects.order_by('-created_at')[:5000]
+        weights_by_type = {'view': 1.0, 'favorite': 3.0, 'contact': 5.0, 'purchase': 10.0}
+        scores = {}
+        for interaction in recent_interactions.iterator():
+            weight = weights_by_type.get(getattr(interaction, 'interaction_type', 'view'), 1.0)
+            scores[interaction.object_id] = scores.get(interaction.object_id, 0.0) + weight
+        
+        if not scores:
+            # Fallback: most recent active listings
+            return list(
+                BaseListing.objects.filter(status='active')
+                .order_by('-created_at')
+                .values_list('id', flat=True)[:limit]
+            )
+        
+        # Order items by score and keep only active ones while preserving order
+        ranked_ids = [item_id for item_id, _ in sorted(scores.items(), key=lambda kv: kv[1], reverse=True)]
+        active_ids = set(
+            BaseListing.objects.filter(status='active', id__in=ranked_ids[: limit * 3])
+            .values_list('id', flat=True)
+        )
+        filtered_ranked = [item_id for item_id in ranked_ids if item_id in active_ids]
+        return filtered_ranked[:limit]
     
     def combine_recommendations(self, collab_recs, content_recs, deep_recs, limit):
         """Combine recommendations from different models"""
