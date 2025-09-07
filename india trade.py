@@ -1335,11 +1335,155 @@ class AIAssistantConsumer(AsyncWebsocketConsumer):
             await self.close()
     
     async def disconnect(self, close_code):
-                <!-- Active Users -->
-                <div class="card-modern text-center p-8">
-                    <div class="w-16 h-16 gradient-primary rounded-2xl mx-auto mb-6 flex items-center justify-center animate-pulse-glow">
-                        <i class="fas fa-users text-white text-2xl"></i>
-                    </div>
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+    
+    async def receive(self, text_data):
+        """Handle incoming messages"""
+        try:
+            data = json.loads(text_data)
+            message_type = data.get('type', 'message')
+            
+            if message_type == 'ai_query':
+                # Process AI query
+                query = data.get('query', '')
+                response = await self.process_ai_query(query)
+                
+                await self.send(text_data=json.dumps({
+                    'type': 'ai_response',
+                    'response': response,
+                    'timestamp': timezone.now().isoformat()
+                }))
+            
+            elif message_type == 'get_recommendations':
+                # Get AI recommendations
+                recommendations = await self.get_ai_recommendations()
+                
+                await self.send(text_data=json.dumps({
+                    'type': 'recommendations',
+                    'data': recommendations,
+                    'timestamp': timezone.now().isoformat()
+                }))
+            
+            elif message_type == 'analyze_listing':
+                # Analyze listing with AI
+                listing_id = data.get('listing_id')
+                analysis = await self.analyze_listing_ai(listing_id)
+                
+                await self.send(text_data=json.dumps({
+                    'type': 'listing_analysis',
+                    'data': analysis,
+                    'timestamp': timezone.now().isoformat()
+                }))
+                
+        except Exception as e:
+            await self.send(text_data=json.dumps({
+                'type': 'error',
+                'message': f'Error processing request: {str(e)}',
+                'timestamp': timezone.now().isoformat()
+            }))
+    
+    async def process_ai_query(self, query):
+        """Process AI query using recommendation engine"""
+        try:
+            from ai_engine.ml_models import AdvancedRecommendationEngine
+            
+            engine = AdvancedRecommendationEngine()
+            response = engine.process_natural_language_query(
+                query=query,
+                user_id=self.user.id,
+                context={'timestamp': timezone.now().isoformat()}
+            )
+            
+            return response
+        except Exception as e:
+            return f"I encountered an error processing your query: {str(e)}"
+    
+    async def get_ai_recommendations(self):
+        """Get AI recommendations for user"""
+        try:
+            from ai_engine.ml_models import AdvancedRecommendationEngine
+            from listings.models import BaseListing
+            
+            engine = AdvancedRecommendationEngine()
+            recommendations = engine.get_recommendations(
+                user_id=self.user.id,
+                context={'timestamp': timezone.now().isoformat()},
+                limit=10
+            )
+            
+            # Format recommendations
+            formatted_recs = []
+            for rec in recommendations:
+                try:
+                    listing = await database_sync_to_async(BaseListing.objects.get)(id=rec['listing_id'])
+                    formatted_recs.append({
+                        'id': str(listing.id),
+                        'title': listing.title,
+                        'price': float(listing.price),
+                        'confidence': rec['confidence'],
+                        'reason': rec['reason']
+                    })
+                except BaseListing.DoesNotExist:
+                    continue
+            
+            return formatted_recs
+        except Exception as e:
+            return []
+    
+    async def analyze_listing_ai(self, listing_id):
+        """Analyze listing with AI"""
+        try:
+            from ai_engine.ml_models import AdvancedFraudDetectionSystem, AdvancedPricePredictionEngine
+            from listings.models import BaseListing
+            
+            listing = await database_sync_to_async(BaseListing.objects.get)(id=listing_id)
+            
+            # Fraud analysis
+            fraud_detector = AdvancedFraudDetectionSystem()
+            fraud_analysis = fraud_detector.analyze_listing(listing)
+            
+            # Price analysis
+            price_predictor = AdvancedPricePredictionEngine()
+            price_analysis = price_predictor.predict_price(listing)
+            
+            # Overall AI score
+            ai_score = calculate_overall_ai_score(fraud_analysis, price_analysis)
+            
+            return {
+                'listing_id': str(listing.id),
+                'fraud_analysis': fraud_analysis,
+                'price_analysis': price_analysis,
+                'ai_score': ai_score,
+                'recommendations': self.get_listing_recommendations(listing)
+            }
+        except Exception as e:
+            return {'error': str(e)}
+    
+    def get_listing_recommendations(self, listing):
+        """Get recommendations for listing optimization"""
+        recommendations = []
+        
+        # Price recommendations
+        if listing.price < 1000:
+            recommendations.append("Consider increasing price for better perceived value")
+        elif listing.price > 100000:
+            recommendations.append("Price might be too high for this category")
+        
+        # Description recommendations
+        if len(listing.description) < 50:
+            recommendations.append("Add more detailed description")
+        
+        # Image recommendations
+        if listing.images.count() < 3:
+            recommendations.append("Add more high-quality images")
+        
+        return recommendations
+
+class RealTimeAnalyticsConsumer(AsyncWebsocketConsumer):
                     <div class="text-4xl font-black text-white mb-2" id="active-users">85,247</div>
                     <div class="text-gray-300 font-medium mb-4">Active Users</div>
                     <div class="text-green-400 text-sm flex items-center justify-center">
