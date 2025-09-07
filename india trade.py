@@ -849,9 +849,10 @@ def retrain_ai_models():
         # fraud_detector.retrain_models()  # Would implement if needed
         
         # Retrain price prediction models
-        price_predictor = AdvancedPrice <h2 class="text-5xl font-black text-white mb-6">
-                    Powered by <span class="gradient-text">Next-Gen AI</span>
-                </h2>
+        price_predictor = AdvancedPricePredictionEngine()
+        categories = ['motors', 'property', 'electronics', 'fashion']
+        for category in categories:
+            price_predictor.train_category_model(category)
                 <p class="text-xl text-gray-300 max-w-3xl mx-auto">
                     Experience the most advanced artificial intelligence algorithms that make trading smarter, safer, and more profitable.
                 </p>
@@ -5281,4 +5282,4 @@ print("- Performance Monitoring")
 print("- Security Enhancements")
 print("=" * 80)
 print("🚀 READY FOR PRODUCTION!")
-print("Run: python manage.py migrate && python manage.py retrain_ai_models"){% endblock %}
+print("Run: python manage.py migrate && python manage.py retrain_ai_models")
