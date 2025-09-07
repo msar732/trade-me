@@ -1,0 +1,41 @@
+# Trade India AI Platform - Requirements
+# Core Django Framework
+Django>=4.2.0
+djangorestframework>=3.14.0
+django-cors-headers>=4.3.0
+channels>=4.0.0
+channels-redis>=4.1.0
+
+# Database
+psycopg2-binary>=2.9.0
+django-environ>=0.10.0
+
+# Machine Learning
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+tensorflow>=2.13.0
+torch>=2.0.0
+transformers>=4.30.0
+joblib>=1.3.0
+
+# Computer Vision
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Geospatial
+geoip2>=4.7.0
+
+# Caching & Background Tasks
+redis>=4.6.0
+celery>=5.3.0
+
+# API Documentation
+drf-yasg>=1.21.0
+
+# Production Server
+gunicorn>=21.0.0
+whitenoise>=6.5.0
+
+# Development
+python-decouple>=3.8
