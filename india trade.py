@@ -853,181 +853,488 @@ def retrain_ai_models():
         categories = ['motors', 'property', 'electronics', 'fashion']
         for category in categories:
             price_predictor.train_category_model(category)
-                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-                    Experience the most advanced artificial intelligence algorithms that make trading smarter, safer, and more profitable.
-                </p>
-            </div>
+        
+        # Log successful retraining
+        logger.info("AI models retrained successfully")
+        
+        return {
+            'success': True,
+            'message': 'AI models retrained successfully',
+            'timestamp': timezone.now().isoformat()
+        }
+        
+    except Exception as exc:
+        logger.error(f"AI model retraining failed: {exc}")
+        return {'success': False, 'error': str(exc)}
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                <!-- AI Features List -->
-                <div class="space-y-8">
-                    <div class="glass rounded-2xl p-8 transform hover:scale-105 transition-all">
-                        <div class="flex items-center space-x-4 mb-6">
-                            <div class="w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center animate-pulse-glow">
-                                <i class="fas fa-brain text-white text-2xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-2xl font-bold text-white">Smart Recommendations</h3>
-                                <p class="text-gray-300">Personalized AI-driven suggestions</p>
-                            </div>
-                        </div>
-                        <p class="text-gray-300 leading-relaxed mb-4">
-                            Our machine learning algorithms analyze your preferences, search history, and behavior patterns 
-                            to recommend the most relevant listings tailored specifically for you.
-                        </p>
-                        <div class="flex items-center space-x-4">
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-check-circle text-green-400"></i>
-                                <span class="text-white text-sm">98.5% Accuracy</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-lightning-bolt text-yellow-400"></i>
-                                <span class="text-white text-sm">Real-time Learning</span>
-                            </div>
-                        </div>
-                    </div>
+def calculate_overall_ai_score(fraud_analysis, price_analysis):
+    """Calculate overall AI score from different analyses"""
+    fraud_score = 1.0 - fraud_analysis['overall_score']  # Invert fraud score
+    price_confidence = price_analysis['confidence']
+    
+    # Weighted combination
+    overall_score = (fraud_score * 0.6 + price_confidence * 0.4) * 10
+    
+    return min(10.0, max(0.0, overall_score))
 
-                    <div class="glass rounded-2xl p-8 transform hover:scale-105 transition-all">
-                        <div class="flex items-center space-x-4 mb-6">
-                            <div class="w-16 h-16 gradient-secondary rounded-2xl flex items-center justify-center animate-pulse-glow">
-                                <i class="fas fa-shield-alt text-white text-2xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-2xl font-bold text-white">Fraud Detection</h3>
-                                <p class="text-gray-300">Advanced security algorithms</p>
-                            </div>
-                        </div>
-                        <p class="text-gray-300 leading-relaxed mb-4">
-                            State-of-the-art fraud detection system that analyzes images, text, user behavior, and transaction 
-                            patterns to identify and prevent fraudulent listings before they reach buyers.
-                        </p>
-                        <div class="flex items-center space-x-4">
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-check-circle text-green-400"></i>
-                                <span class="text-white text-sm">99.8% Detection Rate</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-clock text-blue-400"></i>
-                                <span class="text-white text-sm">Instant Analysis</span>
-                            </div>
-                        </div>
-                    </div>
+# Enhanced API Views - api/v2/views.py
+from rest_framework import viewsets, status, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.core.cache import cache
+from django.db.models import Q, Count, Avg
+from django.utils import timezone
+from datetime import timedelta
+import json
 
-                    <div class="glass rounded-2xl p-8 transform hover:scale-105 transition-all">
-                        <div class="flex items-center space-x-4 mb-6">
-                            <div class="w-16 h-16 gradient-success rounded-2xl flex items-center justify-center animate-pulse-glow">
-                                <i class="fas fa-chart-line text-white text-2xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-2xl font-bold text-white">Price Intelligence</h3>
-                                <p class="text-gray-300">AI-powered market analysis</p>
-                            </div>
-                        </div>
-                        <p class="text-gray-300 leading-relaxed mb-4">
-                            Dynamic pricing algorithms that analyze market trends, historical data, and competitor pricing 
-                            to suggest optimal prices and predict future value changes.
-                        </p>
-                        <div class="flex items-center space-x-4">
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-check-circle text-green-400"></i>
-                                <span class="text-white text-sm">95% Price Accuracy</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <i class="fas fa-trending-up text-green-400"></i>
-                                <span class="text-white text-sm">Market Predictions</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+class EnhancedListingViewSet(viewsets.ModelViewSet):
+    """Enhanced listing viewset with advanced AI features"""
+    
+    @action(detail=False, methods=['post'])
+    def ai_search(self, request):
+        """AI-powered intelligent search"""
+        query = request.data.get('query', '')
+        filters = request.data.get('filters', {})
+        user_context = request.data.get('context', {})
+        
+        # Use AI to enhance search
+        search_results = self.perform_ai_search(query, filters, user_context, request.user)
+        
+        return Response({
+            'results': search_results,
+            'query': query,
+            'filters_applied': filters,
+            'ai_enhanced': True,
+            'timestamp': timezone.now()
+        })
+    
+    def perform_ai_search(self, query, filters, context, user):
+        """Perform AI-enhanced search"""
+        from ai_engine.ml_models import AdvancedRecommendationEngine
+        from listings.models import BaseListing
+        
+        # Base queryset
+        queryset = BaseListing.objects.filter(status='active')
+        
+        # Apply text search
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) | 
+                Q(description__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct()
+        
+        # Apply filters
+        if 'category' in filters:
+            queryset = queryset.filter(category__slug__in=filters['category'])
+        
+        if 'location' in filters:
+            queryset = queryset.filter(location__id__in=filters['location'])
+        
+        if 'price_min' in filters:
+            queryset = queryset.filter(price__gte=filters['price_min'])
+        
+        if 'price_max' in filters:
+            queryset = queryset.filter(price__lte=filters['price_max'])
+        
+        # Apply AI enhancements
+        if user.is_authenticated:
+            # Get AI recommendations
+            recommendation_engine = AdvancedRecommendationEngine()
+            recommendations = recommendation_engine.get_recommendations(
+                user_id=user.id,
+                context=context,
+                limit=50
+            )
+            
+            # Boost recommended items in search results
+            recommended_ids = [rec['listing_id'] for rec in recommendations]
+            if recommended_ids:
+                queryset = queryset.extra(
+                    select={
+                        'is_recommended': f"CASE WHEN id IN ({','.join(map(str, recommended_ids))}) THEN 1 ELSE 0 END"
+                    }
+                ).order_by('-is_recommended', '-created_at')
+        
+        # Return serialized results
+        return [self.serialize_listing(listing) for listing in queryset[:20]]
+    
+    def serialize_listing(self, listing):
+        """Serialize listing for API response"""
+        return {
+            'id': str(listing.id),
+            'title': listing.title,
+            'price': float(listing.price),
+            'description': listing.description,
+            'category': listing.category.name if listing.category else None,
+            'location': str(listing.location) if listing.location else None,
+            'images': [img.image.url for img in listing.images.all()[:3]],
+            'created_at': listing.created_at.isoformat(),
+            'ai_score': self.calculate_ai_score(listing)
+        }
+    
+    def calculate_ai_score(self, listing):
+        """Calculate AI score for listing"""
+        from ai_engine.ml_models import AdvancedFraudDetectionSystem, AdvancedPricePredictionEngine
+        
+        # Get fraud analysis
+        fraud_detector = AdvancedFraudDetectionSystem()
+        fraud_analysis = fraud_detector.analyze_listing(listing)
+        
+        # Get price analysis
+        price_predictor = AdvancedPricePredictionEngine()
+        price_analysis = price_predictor.predict_price(listing)
+        
+        # Calculate overall score
+        return calculate_overall_ai_score(fraud_analysis, price_analysis)
+    
+    @action(detail=False, methods=['get'])
+    def ai_recommendations(self, request):
+        """Get AI-powered recommendations for user"""
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Get user context
+        context = {
+            'user_id': request.user.id,
+            'preferences': request.user.ai_preferences,
+            'interaction_history': request.user.interaction_history
+        }
+        
+        # Get recommendations
+        recommendation_engine = AdvancedRecommendationEngine()
+        recommendations = recommendation_engine.get_recommendations(
+            user_id=request.user.id,
+            context=context,
+            limit=20
+        )
+        
+        # Format recommendations
+        formatted_recs = []
+        for rec in recommendations:
+            try:
+                listing = BaseListing.objects.get(id=rec['listing_id'])
+                formatted_recs.append({
+                    'listing': self.serialize_listing(listing),
+                    'confidence': rec['confidence'],
+                    'reason': rec['reason']
+                })
+            except BaseListing.DoesNotExist:
+                continue
+        
+        return Response({
+            'recommendations': formatted_recs,
+            'explanation': self.get_recommendation_explanation(request.user),
+            'updated_at': timezone.now()
+        })
+    
+    def get_recommendation_explanation(self, user):
+        """Get explanation for recommendations"""
+        return f"Based on your preferences and interaction history, we've found {len(formatted_recs)} personalized recommendations for you."
 
-                <!-- AI Visualization -->
-                <div class="relative">
-                    <div class="glass rounded-3xl p-8 text-center">
-                        <div class="mb-8">
-                            <div class="w-32 h-32 gradient-primary rounded-full mx-auto flex items-center justify-center mb-6 animate-pulse-glow">
-                                <i class="fas fa-robot text-white text-5xl"></i>
-                            </div>
-                            <h3 class="text-3xl font-bold text-white mb-4">AI Engine Status</h3>
-                            <p class="text-gray-300">Real-time artificial intelligence processing</p>
-                        </div>
+class AIAnalyticsView(APIView):
+    """Advanced AI analytics endpoint"""
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        """Get comprehensive AI analytics"""
+        analytics_type = request.query_params.get('type', 'overview')
+        time_range = request.query_params.get('range', '7d')
+        
+        if analytics_type == 'overview':
+            return self.get_overview_analytics(time_range)
+        elif analytics_type == 'performance':
+            return self.get_performance_analytics(time_range)
+        elif analytics_type == 'market':
+            return self.get_market_analytics(time_range)
+        else:
+            return Response({'error': 'Invalid analytics type'}, status=400)
+    
+    def get_overview_analytics(self, time_range):
+        """Get overview analytics"""
+        days = self.parse_time_range(time_range)
+        start_date = timezone.now() - timedelta(days=days)
+        
+        from listings.models import BaseListing
+        from ai_engine.models import UserInteraction
+        
+        # Basic metrics
+        total_listings = BaseListing.objects.filter(
+            created_at__gte=start_date
+        ).count()
+        
+        total_interactions = UserInteraction.objects.filter(
+            created_at__gte=start_date
+        ).count()
+        
+        # AI performance metrics
+        ai_recommendations = UserInteraction.objects.filter(
+            created_at__gte=start_date,
+            interaction_type='recommendation_view'
+        ).count()
+        
+        fraud_detections = UserInteraction.objects.filter(
+            created_at__gte=start_date,
+            interaction_type='fraud_detection'
+        ).count()
+        
+        # Calculate success rates
+        recommendation_success_rate = 0
+        if ai_recommendations > 0:
+            successful_recommendations = UserInteraction.objects.filter(
+                created_at__gte=start_date,
+                interaction_type='recommendation_click'
+            ).count()
+            recommendation_success_rate = (successful_recommendations / ai_recommendations) * 100
+        
+        fraud_detection_rate = 0
+        if fraud_detections > 0:
+            confirmed_frauds = UserInteraction.objects.filter(
+                created_at__gte=start_date,
+                interaction_type='fraud_confirmed'
+            ).count()
+            fraud_detection_rate = (confirmed_frauds / fraud_detections) * 100
+        
+        return Response({
+            'period': f'{days} days',
+            'total_listings': total_listings,
+            'total_interactions': total_interactions,
+            'ai_recommendations': ai_recommendations,
+            'fraud_detections': fraud_detections,
+            'recommendation_success_rate': round(recommendation_success_rate, 2),
+            'fraud_detection_rate': round(fraud_detection_rate, 2),
+            'model_health': self.get_model_health_status()
+        })
+    
+    def parse_time_range(self, time_range):
+        """Parse time range string to days"""
+        range_map = {
+            '1d': 1, '7d': 7, '30d': 30, '90d': 90, '1y': 365
+        }
+        return range_map.get(time_range, 7)
+    
+    def get_model_health_status(self):
+        """Get AI model health status"""
+        try:
+            from ai_engine.ml_models import AdvancedRecommendationEngine, AdvancedFraudDetectionSystem, AdvancedPricePredictionEngine
+            
+            # Test each model
+            rec_engine = AdvancedRecommendationEngine()
+            fraud_engine = AdvancedFraudDetectionSystem()
+            price_engine = AdvancedPricePredictionEngine()
+            
+            return {
+                'recommendation_engine': 'healthy',
+                'fraud_detection_engine': 'healthy',
+                'price_prediction_engine': 'healthy',
+                'overall_status': 'healthy'
+            }
+        except Exception as e:
+            logger.error(f"Model health check failed: {e}")
+            return {
+                'recommendation_engine': 'error',
+                'fraud_detection_engine': 'error',
+                'price_prediction_engine': 'error',
+                'overall_status': 'error',
+                'error': str(e)
+            }
 
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <span class="text-white font-medium">Processing Power</span>
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-32 h-2 bg-white bg-opacity-20 rounded-full">
-                                        <div class="w-full h-2 gradient-primary rounded-full animate-pulse"></div>
-                                    </div>
-                                    <span class="text-green-400 font-bold">100%</span>
-                                </div>
-                            </div>
+# Enhanced Middleware - core/middleware.py
+import time
+import json
+from django.utils.deprecation import MiddlewareMixin
+from django.core.cache import cache
+from django.contrib.gis.geoip2 import GeoIP2
+from ai_engine.models import UserInteraction
+import logging
 
-                            <div class="flex items-center justify-between">
-                                <span class="text-white font-medium">Learning Rate</span>
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-32 h-2 bg-white bg-opacity-20 rounded-full">
-                                        <div class="w-5/6 h-2 gradient-secondary rounded-full animate-pulse"></div>
-                                    </div>
-                                    <span class="text-blue-400 font-bold">97%</span>
-                                </div>
-                            </div>
+logger = logging.getLogger(__name__)
 
-                            <div class="flex items-center justify-between">
-                                <span class="text-white font-medium">Security Level</span>
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-32 h-2 bg-white bg-opacity-20 rounded-full">
-                                        <div class="w-full h-2 gradient-success rounded-full animate-pulse"></div>
-                                    </div>
-                                    <span class="text-green-400 font-bold">99.8%</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-6 border-t border-white border-opacity-20">
-                            <div class="grid grid-cols-3 gap-4 text-center">
-                                <div>
-                                    <div class="text-2xl font-bold text-white" data-counter="1250000">0</div>
-                                    <div class="text-gray-300 text-sm">Decisions/Sec</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold text-white" data-counter="247">0</div>
-                                    <div class="text-gray-300 text-sm">Uptime Hours</div>
-                                </div>
-                                <div>
-                                    <div class="text-2xl font-bold text-white" data-counter="9999">0</div>
-                                    <div class="text-gray-300 text-sm">Accuracy Score</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Floating AI Elements -->
-                    <div class="absolute -top-4 -left-4 w-8 h-8 gradient-primary rounded-full animate-float opacity-60"></div>
-                    <div class="absolute -top-8 right-8 w-6 h-6 gradient-secondary rounded-full animate-float opacity-60" style="animation-delay: 1s;"></div>
-                    <div class="absolute bottom-4 -left-8 w-10 h-10 gradient-success rounded-full animate-float opacity-60" style="animation-delay: 2s;"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Live Statistics & Real-time Data -->
-    <section class="py-24 relative">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="text-center mb-16">
-                <div class="inline-flex items-center space-x-2 bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-full px-6 py-3 mb-6">
-                    <span class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></span>
-                    <span class="text-white font-medium">Live Platform Analytics</span>
-                </div>
+class AIAnalyticsMiddleware(MiddlewareMixin):
+    """Middleware to collect data for AI analytics"""
+    
+    def process_request(self, request):
+        request.start_time = time.time()
+        
+        # Collect user context for AI
+        request.ai_context = {
+            'ip_address': self.get_client_ip(request),
+            'user_agent': request.META.get('HTTP_USER_AGENT', ''),
+            'referer': request.META.get('HTTP_REFERER', ''),
+            'timestamp': timezone.now().isoformat()
+        }
+        
+        # Add user info if authenticated
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            request.ai_context.update({
+                'user_id': request.user.id,
+                'user_type': request.user.account_type,
+                'preferences': request.user.ai_preferences
+            })
+        
+        # Add location data
+        try:
+            g = GeoIP2()
+            location = g.city(request.ai_context['ip_address'])
+            request.ai_context['location'] = {
+                'city': location.get('city'),
+                'country': location.get('country_name'),
+                'latitude': location.get('latitude'),
+                'longitude': location.get('longitude')
+            }
+        except:
+            request.ai_context['location'] = None
+    
+    def process_response(self, request, response):
+        if hasattr(request, 'start_time'):
+            processing_time = time.time() - request.start_time
+            
+            # Log for AI analytics
+            self.log_interaction(request, response, processing_time)
+            
+            # Add performance headers
+            response['X-Processing-Time'] = f"{processing_time:.3f}s"
+            response['X-AI-Enhanced'] = "true"
+        
+        return response
+    
+    def log_interaction(self, request, response, processing_time):
+        """Log interaction for AI analysis"""
+        if request.user.is_authenticated and hasattr(request, 'ai_context'):
+            try:
+                # Create interaction record for AI learning
+                interaction_data = {
+                    'user_id': request.user.id,
+                    'interaction_type': 'page_view',
+                    'page_url': request.get_full_path(),
+                    'processing_time': processing_time,
+                    'response_status': response.status_code,
+                    'context': request.ai_context,
+                    'timestamp': timezone.now()
+                }
                 
-                <h2 class="text-5xl font-black text-white mb-6">
-                    Real-time <span class="gradient-text">Marketplace Pulse</span>
-                </h2>
-                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
-                    Watch our AI-powered marketplace in action with live statistics and real-time user activity.
-                </p>
-            </div>
+                # Store in database
+                UserInteraction.objects.create(**interaction_data)
+                
+                # Update user interaction history
+                if hasattr(request.user, 'interaction_history'):
+                    history = request.user.interaction_history or []
+                    history.append({
+                        'type': 'page_view',
+                        'url': request.get_full_path(),
+                        'timestamp': timezone.now().isoformat()
+                    })
+                    request.user.interaction_history = history[-100:]  # Keep last 100
+                    request.user.save(update_fields=['interaction_history'])
+                
+                # Cache for real-time analytics
+                cache_key = f"ai_interactions_{request.user.id}"
+                interactions = cache.get(cache_key, [])
+                interactions.append(interaction_data)
+                cache.set(cache_key, interactions, 3600)  # 1 hour
+                
+            except Exception as e:
+                logger.warning(f"Failed to log AI interaction: {e}")
+    
+    def get_client_ip(self, request):
+        """Get client IP address"""
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+class PerformanceMiddleware(MiddlewareMixin):
+    """Middleware for performance monitoring and optimization"""
+    
+    def process_request(self, request):
+        request.performance_start = time.time()
+        
+        # Check if request should be cached
+        if self.should_cache_request(request):
+            cache_key = self.get_cache_key(request)
+            cached_response = cache.get(cache_key)
+            
+            if cached_response:
+                request.from_cache = True
+                return cached_response
+    
+    def process_response(self, request, response):
+        if hasattr(request, 'performance_start'):
+            processing_time = time.time() - request.performance_start
+            
+            # Cache response if appropriate
+            if (self.should_cache_response(request, response) and
+                not getattr(request, 'from_cache', False)):
+                cache_key = self.get_cache_key(request)
+                cache.set(cache_key, response, 300)  # 5 minutes
+            
+            # Add performance headers
+            response['X-Processing-Time'] = f"{processing_time:.3f}s"
+            response['X-Cache-Status'] = 'HIT' if getattr(request, 'from_cache', False) else 'MISS'
+        
+        return response
+    
+    def should_cache_request(self, request):
+        """Determine if request should be cached"""
+        return (request.method == 'GET' and 
+                not request.user.is_authenticated and
+                'api/' not in request.path)
+    
+    def should_cache_response(self, request, response):
+        """Determine if response should be cached"""
+        return (response.status_code == 200 and 
+                request.method == 'GET' and
+                'no-cache' not in response.get('Cache-Control', ''))
+    
+    def get_cache_key(self, request):
+        """Generate cache key for request"""
+        return f"page_cache_{hash(request.get_full_path())}"
+
+# Enhanced WebSocket Consumers - core/consumers.py
+import json
+import asyncio
+from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from django.contrib.auth import get_user_model
+from django.core.cache import cache
+
+User = get_user_model()
+
+class AIAssistantConsumer(AsyncWebsocketConsumer):
+    """WebSocket consumer for AI assistant"""
+    
+    async def connect(self):
+        self.user = self.scope["user"]
+        
+        if self.user.is_authenticated:
+            self.room_group_name = f'ai_assistant_{self.user.id}'
+            
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.accept()
+            
+            # Send welcome message
+            await self.send(text_data=json.dumps({
+                'type': 'ai_message',
+                'message': f'Hello {self.user.first_name or self.user.username}! I\'m your AI assistant. How can I help you today?',
+                'timestamp': timezone.now().isoformat(),
+                'capabilities': [
+                    'Product Search & Recommendations',
+                    'Price Analysis & Predictions',
+                    'Market Trends & Insights',
+                    'Fraud Detection Alerts',
+                    'Listing Optimization Tips'
+                ]
+            }))
+        else:
+            await self.close()
+    
+    async def disconnect(self, close_code):
                 <!-- Active Users -->
                 <div class="card-modern text-center p-8">
                     <div class="w-16 h-16 gradient-primary rounded-2xl mx-auto mb-6 flex items-center justify-center animate-pulse-glow">
