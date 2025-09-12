@@ -1,0 +1,14 @@
+2025-09-12 13:27:31,103 - __main__ - WARNING - [app.py:452] - Redis connection failed: Error 111 connecting to 127.0.0.1:6379. Connection refused., using memory cache
+2025-09-12 13:27:36,120 - __main__ - WARNING - [app.py:233] - MongoDB connection failed: localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 10000.0ms, connectTimeoutMS: 10000.0ms), Timeout: 5.0s, Topology Description: <TopologyDescription id: 68c41fc31ff7b9a2601c3d73, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None, error=AutoReconnect('localhost:27017: [Errno 111] Connection refused (configured timeouts: socketTimeoutMS: 10000.0ms, connectTimeoutMS: 10000.0ms)')>]>, using SQLite fallback
+2025-09-12 13:27:36,121 - __main__ - WARNING - [app.py:354] - Hindi language support not available
+2025-09-12 13:27:36,176 - __main__ - INFO - [app.py:1579] - Initializing production database...
+2025-09-12 13:27:38,378 - __main__ - INFO - [app.py:1802] - Production database initialized successfully
+2025-09-12 13:27:38,394 - __main__ - INFO - [app.py:1809] - Database Summary:
+2025-09-12 13:27:38,395 - __main__ - INFO - [app.py:1810] -    Users: 5
+2025-09-12 13:27:38,395 - __main__ - INFO - [app.py:1811] -    Categories: 73
+2025-09-12 13:27:38,395 - __main__ - INFO - [app.py:1812] -    Listings: 0
+2025-09-12 13:27:38,397 - werkzeug - INFO - [_internal.py:97] - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.30.0.2:5000
+2025-09-12 13:27:38,397 - werkzeug - INFO - [_internal.py:97] - [33mPress CTRL+C to quit[0m
