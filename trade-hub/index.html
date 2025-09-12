@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trade Hub</title>
+    <meta name="description" content="Trade Hub - Deals, products, and checkout in one place.">
+    <link rel="icon" href="./assets/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" role="banner">
+      <div class="container header-inner">
+        <div class="brand">
+          <button class="icon-button menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+            <span class="icon">☰</span>
+          </button>
+          <a href="#" class="logo" aria-label="Trade Hub Home">Trade <span>Hub</span></a>
+        </div>
+        <nav id="primary-nav" class="site-nav" aria-label="Primary">
+          <ul>
+            <li><a href="#home" data-route>Home</a></li>
+            <li><a href="#catalog" data-route>Catalog</a></li>
+            <li><a href="#deals" data-route>Deals</a></li>
+            <li><a href="#about" data-route>About</a></li>
+          </ul>
+        </nav>
+        <div class="header-actions">
+          <button id="themeToggle" class="icon-button" aria-pressed="false" aria-label="Toggle theme">🌙</button>
+          <button id="wishlistButton" class="icon-button" aria-label="Open wishlist" data-open="wishlist-modal">♡<span class="badge" id="wishlistCount" aria-live="polite">0</span></button>
+          <button id="cartButton" class="icon-button" aria-label="Open cart" data-open="cart-modal">🛒<span class="badge" id="cartCount" aria-live="polite">0</span></button>
+          <button id="authButton" class="button button-small" data-open="auth-modal">Sign in</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" class="site-main container" tabindex="-1">
+      <section id="home" class="route" data-route-panel>
+        <section class="hero" aria-labelledby="hero-title">
+          <div class="hero-content">
+            <h1 id="hero-title">Your all‑in‑one marketplace</h1>
+            <p>Discover trending products, track deals, and checkout seamlessly — all in Trade Hub.</p>
+            <div class="hero-actions">
+              <a href="#catalog" class="button">Browse catalog</a>
+              <a href="#deals" class="button button-ghost">View deals</a>
+            </div>
+          </div>
+        </section>
+        <section class="features" aria-label="Highlights">
+          <div class="features-grid">
+            <article class="feature"><h3>Smart Search</h3><p>Find products fast with real‑time filters.</p></article>
+            <article class="feature"><h3>Wishlist</h3><p>Save items and compare whenever you like.</p></article>
+            <article class="feature"><h3>Secure Checkout</h3><p>Quick, safe, and privacy‑focused checkout.</p></article>
+          </div>
+        </section>
+        <section id="deals" class="deals" aria-label="Deals carousel">
+          <div class="carousel" aria-roledescription="carousel" aria-label="Top deals">
+            <button class="carousel-control prev" aria-label="Previous deal" data-carousel="prev">‹</button>
+            <div class="carousel-track" id="dealsTrack"></div>
+            <button class="carousel-control next" aria-label="Next deal" data-carousel="next">›</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="catalog" class="route hidden" data-route-panel>
+        <header class="catalog-header">
+          <h2>Catalog</h2>
+          <div class="catalog-controls" role="search">
+            <input id="searchInput" type="search" placeholder="Search products" aria-label="Search products">
+            <select id="categoryFilter" aria-label="Filter by category">
+              <option value="">All categories</option>
+            </select>
+            <select id="sortSelect" aria-label="Sort by">
+              <option value="popularity">Most popular</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating">Top rated</option>
+            </select>
+          </div>
+        </header>
+        <div id="productGrid" class="product-grid" aria-live="polite"></div>
+        <nav class="pagination" aria-label="Catalog pages">
+          <button id="prevPage" class="button button-small" disabled>Prev</button>
+          <span id="pageInfo" aria-live="polite">Page 1</span>
+          <button id="nextPage" class="button button-small">Next</button>
+        </nav>
+      </section>
+
+      <section id="about" class="route hidden" data-route-panel>
+        <h2>About Trade Hub</h2>
+        <p>Trade Hub brings together deals, catalog, wishlist, and checkout in a single, accessible web app.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>© <span id="year"></span> Trade Hub. All rights reserved.</p>
+        <nav aria-label="Footer">
+          <a href="#about" data-route>About</a>
+          <a href="#catalog" data-route>Catalog</a>
+          <a href="#home" data-route>Home</a>
+        </nav>
+      </div>
+    </footer>
+
+    <!-- Wishlist Modal -->
+    <div id="wishlist-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="wishlist-title" aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content" role="document">
+        <header class="modal-header">
+          <h3 id="wishlist-title">Wishlist</h3>
+          <button class="icon-button" data-close aria-label="Close wishlist">✕</button>
+        </header>
+        <div id="wishlistItems" class="modal-body"></div>
+        <footer class="modal-footer">
+          <button class="button button-ghost" data-close>Close</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="cart-title" aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content" role="document">
+        <header class="modal-header">
+          <h3 id="cart-title">Your cart</h3>
+          <button class="icon-button" data-close aria-label="Close cart">✕</button>
+        </header>
+        <div id="cartItems" class="modal-body"></div>
+        <footer class="modal-footer">
+          <button id="checkoutButton" class="button">Checkout</button>
+          <button class="button button-ghost" data-close>Continue shopping</button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="auth-title" aria-hidden="true">
+      <div class="modal-backdrop" data-close></div>
+      <div class="modal-content" role="document">
+        <header class="modal-header">
+          <h3 id="auth-title">Sign in</h3>
+          <button class="icon-button" data-close aria-label="Close sign in">✕</button>
+        </header>
+        <form id="authForm" class="modal-body" novalidate>
+          <label>Email<input id="authEmail" type="email" required autocomplete="email"></label>
+          <label>Password<input id="authPassword" type="password" required minlength="6" autocomplete="current-password"></label>
+          <div class="form-row">
+            <label class="checkbox"><input id="rememberMe" type="checkbox"> Remember me</label>
+          </div>
+          <p class="form-hint" id="authHint" role="status" aria-live="polite"></p>
+          <footer class="modal-footer">
+            <button type="submit" class="button">Continue</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <script src="./app.js" defer></script>
+  </body>
+  </html>
