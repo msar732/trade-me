@@ -789,7 +789,6 @@ class Message(Base):
     
     def __repr__(self):
         return f"<Message(sender_id={self.sender_id}, receiver_id={self.receiver_id})>"
-
 class Rating(Base):
     """Rating model for user reviews"""
     __tablename__ = "ratings"
@@ -2348,7 +2347,6 @@ def get_categories():
             'success': False,
             'error': 'Failed to load categories'
         }), 500
-
 # ==================== MULTIPAGE ROUTES ====================
 @app.route('/property')
 def property_page():
@@ -3126,7 +3124,6 @@ def register_user():
             'error': 'Registration failed due to server error',
             'code': 'SERVER_ERROR'
         }), 500
-
 @app.route('/auth/login', methods=['POST'])
 @limiter.limit("20 per minute")  # More generous limit
 def login_user():
@@ -3509,7 +3506,6 @@ def update_profile():
             'error': 'Profile update failed',
             'code': 'SERVER_ERROR'
         }), 500
-
 @app.route('/api/states')
 def get_states():
     """Get states and districts data for frontend"""
@@ -5020,7 +5016,6 @@ def rate_limit_exceeded(error):
         'error': 'Rate limit exceeded. Please try again later.',
         'code': 'RATE_LIMITED'
     }), 429
-
 # ==================== WEB SCRAPING SYSTEM ====================
 class RealWebScraper:
     """Real web scraper for DealHub using requests and BeautifulSoup"""
@@ -5732,7 +5727,6 @@ def save_scraped_data_to_db(data, table_name='listings'):
     conn.commit()
     conn.close()
     print(f"✅ Saved {len(data)} items to database")
-
 # ==================== HTML TEMPLATE ====================
 PRODUCTION_HTML_TEMPLATE = '''
 <!DOCTYPE html>
@@ -5740,7 +5734,7 @@ PRODUCTION_HTML_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeIndia - Buy, Sell & Discover Amazing Deals</title>
+    <title>TradeHub - Buy, Sell & Discover Amazing Deals</title>
     <style>
         * {
             margin: 0;
@@ -6531,7 +6525,6 @@ PRODUCTION_HTML_TEMPLATE = '''
             padding: 1rem;
             text-align: center;
         }
-        
         /* Loading State */
         .loading-spinner {
             display: flex;
@@ -6875,7 +6868,7 @@ PRODUCTION_HTML_TEMPLATE = '''
         <div class="container">
             <div class="header-content">
                 <a href="#" class="logo" onclick="showPage('home')">
-                    🏪 TradeIndia
+                    🏪 TradeHub
                 </a>
                 <div class="search-container">
                     <input type="text" class="search-box" placeholder="Search for anything..." id="globalSearch">
@@ -7666,13 +7659,12 @@ PRODUCTION_HTML_TEMPLATE = '''
             </div>
         </div>
     </div>
-
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h4>About TradeIndia</h4>
+                    <h4>About TradeHub</h4>
                     <ul>
                         <li><a href="#" onclick="showModal('aboutModal')">About Us</a></li>
                         <li><a href="#" onclick="showModal('careersModal')">Careers</a></li>
@@ -7704,16 +7696,16 @@ PRODUCTION_HTML_TEMPLATE = '''
                 <div class="footer-section">
                     <h4>Connect With Us</h4>
                     <ul>
-                        <li><a href="#" onclick="window.open('https://twitter.com/tradeindia', '_blank')">Twitter</a></li>
-                        <li><a href="#" onclick="window.open('https://facebook.com/tradeindia', '_blank')">Facebook</a></li>
-                        <li><a href="#" onclick="window.open('https://instagram.com/tradeindia', '_blank')">Instagram</a></li>
-                        <li><a href="#" onclick="window.open('https://linkedin.com/company/tradeindia', '_blank')">LinkedIn</a></li>
+                        <li><a href="#" onclick="window.open('https://twitter.com/tradehub', '_blank')">Twitter</a></li>
+                        <li><a href="#" onclick="window.open('https://facebook.com/tradehub', '_blank')">Facebook</a></li>
+                        <li><a href="#" onclick="window.open('https://instagram.com/tradehub', '_blank')">Instagram</a></li>
+                        <li><a href="#" onclick="window.open('https://linkedin.com/company/tradehub', '_blank')">LinkedIn</a></li>
                         <li><a href="#" onclick="showModal('appModal')">Mobile App</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 TradeIndia Marketplace Private Limited. All rights reserved. | Made with care in India</p>
+                <p>&copy; 2024 TradeHub Marketplace Private Limited. All rights reserved. | Made with care in India</p>
             </div>
         </div>
     </footer>
@@ -7735,9 +7727,9 @@ PRODUCTION_HTML_TEMPLATE = '''
         // Global variables
         let currentUser = null;
         let currentListings = [];
-        let watchlistItems = JSON.parse(localStorage.getItem('tradeindia_watchlist') || '[]');
-        let userListings = JSON.parse(localStorage.getItem('tradeindia_userListings') || '[]');
-        let userMessages = JSON.parse(localStorage.getItem('tradeindia_messages') || '[]');
+        let watchlistItems = JSON.parse(localStorage.getItem('tradehub_watchlist') || '[]');
+        let userListings = JSON.parse(localStorage.getItem('tradehub_userListings') || '[]');
+        let userMessages = JSON.parse(localStorage.getItem('tradehub_messages') || '[]');
         
         // Sample comprehensive data for millions of users
         const sampleListings = {
@@ -7824,8 +7816,8 @@ PRODUCTION_HTML_TEMPLATE = '''
         // Enhanced user authentication system
         class UserManager {
             constructor() {
-                this.users = new Map(JSON.parse(localStorage.getItem('tradeindia_users') || '[]'));
-                this.currentUser = JSON.parse(localStorage.getItem('tradeindia_currentUser') || 'null');
+                this.users = new Map(JSON.parse(localStorage.getItem('tradehub_users') || '[]'));
+                this.currentUser = JSON.parse(localStorage.getItem('tradehub_currentUser') || 'null');
                 this.updateUI();
             }
 
@@ -7855,14 +7847,14 @@ PRODUCTION_HTML_TEMPLATE = '''
                 }
                 
                 this.currentUser = user;
-                localStorage.setItem('tradeindia_currentUser', JSON.stringify(user));
+                localStorage.setItem('tradehub_currentUser', JSON.stringify(user));
                 this.updateUI();
                 return user;
             }
 
             logout() {
                 this.currentUser = null;
-                localStorage.removeItem('tradeindia_currentUser');
+                localStorage.removeItem('tradehub_currentUser');
                 this.updateUI();
             }
 
@@ -7884,7 +7876,7 @@ PRODUCTION_HTML_TEMPLATE = '''
             }
 
             saveUsers() {
-                localStorage.setItem('tradeindia_users', JSON.stringify([...this.users]));
+                localStorage.setItem('tradehub_users', JSON.stringify([...this.users]));
             }
         }
 
@@ -8372,7 +8364,7 @@ PRODUCTION_HTML_TEMPLATE = '''
                     status: 'active'
                 });
                 
-                localStorage.setItem('tradeindia_userListings', JSON.stringify(userListings));
+                localStorage.setItem('tradehub_userListings', JSON.stringify(userListings));
                 
                 closeModal('listingModal');
                 showNotification('Listing created successfully!');
@@ -8392,7 +8384,7 @@ PRODUCTION_HTML_TEMPLATE = '''
                 };
                 
                 userMessages.push(messageData);
-                localStorage.setItem('tradeindia_messages', JSON.stringify(userMessages));
+                localStorage.setItem('tradehub_messages', JSON.stringify(userMessages));
                 
                 closeModal('contactModal');
                 showNotification('Message sent successfully!');
@@ -8427,7 +8419,6 @@ PRODUCTION_HTML_TEMPLATE = '''
                 </div>
             `;
         }
-
         function showListingDetail(listingId) {
             const listing = listingManager.listings.get(listingId);
             if (!listing) return;
@@ -8510,7 +8501,7 @@ PRODUCTION_HTML_TEMPLATE = '''
         function addToWatchlist(listingId) {
             if (!watchlistItems.includes(listingId)) {
                 watchlistItems.push(listingId);
-                localStorage.setItem('tradeindia_watchlist', JSON.stringify(watchlistItems));
+                localStorage.setItem('tradehub_watchlist', JSON.stringify(watchlistItems));
                 showNotification('Item saved to your watchlist!');
             } else {
                 showNotification('Item already in your watchlist!');
@@ -8833,7 +8824,7 @@ PRODUCTION_HTML_TEMPLATE = '''
             };
             
             // Store in local storage for demo purposes
-            let userAnalytics = JSON.parse(localStorage.getItem('tradeindia_analytics') || '[]');
+            let userAnalytics = JSON.parse(localStorage.getItem('tradehub_analytics') || '[]');
             userAnalytics.push(analytics);
             
             // Keep only last 1000 events
@@ -8841,7 +8832,7 @@ PRODUCTION_HTML_TEMPLATE = '''
                 userAnalytics = userAnalytics.slice(-1000);
             }
             
-            localStorage.setItem('tradeindia_analytics', JSON.stringify(userAnalytics));
+            localStorage.setItem('tradehub_analytics', JSON.stringify(userAnalytics));
         }
 
         // Performance monitoring
@@ -9055,7 +9046,7 @@ PRODUCTION_HTML_TEMPLATE = '''
                     inputs.forEach(input => {
                         input.addEventListener('input', function() {
                             const formData = new FormData(form);
-                            localStorage.setItem(`tradeindia_draft_${formId}`, JSON.stringify(Object.fromEntries(formData)));
+                            localStorage.setItem(`tradehub_draft_${formId}`, JSON.stringify(Object.fromEntries(formData)));
                         });
                     });
                 }
@@ -9064,10 +9055,10 @@ PRODUCTION_HTML_TEMPLATE = '''
 
         // Load saved drafts
         function loadSavedDrafts() {
-            const draftKeys = Object.keys(localStorage).filter(key => key.startsWith('tradeindia_draft_'));
+            const draftKeys = Object.keys(localStorage).filter(key => key.startsWith('tradehub_draft_'));
             
             draftKeys.forEach(key => {
-                const formId = key.replace('tradeindia_draft_', '');
+                const formId = key.replace('tradehub_draft_', '');
                 const form = document.getElementById(formId);
                 
                 if (form) {
@@ -9102,7 +9093,7 @@ PRODUCTION_HTML_TEMPLATE = '''
         }
 
         // Initialize all features
-        console.log('TradeIndia Enhanced Marketplace initialized successfully!');
+        console.log('TradeHub Enhanced Marketplace initialized successfully!');
         console.log('Features loaded:', {
             'User Management': '✅',
             'Advanced Search': '✅',
@@ -9223,7 +9214,6 @@ PRODUCTION_HTML_TEMPLATE = '''
             
             resultsDisplay.style.display = 'block';
         }
-        
         // Poll scraping status (simplified)
         function pollScrapingStatus() {
             // In a real implementation, you would poll the server for status updates
@@ -10024,7 +10014,6 @@ PRODUCTION_HTML_TEMPLATE = '''
             align-items: center;
             gap: 12px;
         }
-
         /* Responsive Design */
         @media (max-width: 768px) {
             .nav-container {
@@ -10079,7 +10068,7 @@ PRODUCTION_HTML_TEMPLATE = '''
         <div class="nav-container">
             <div class="logo" onclick="showPage('home')">
                 <i class="fas fa-store"></i>
-                DealHub India
+                TradeHub India
             </div>
             <div class="nav-actions">
                 <button class="btn btn-secondary" onclick="showPage('home')">
@@ -10350,7 +10339,7 @@ PRODUCTION_HTML_TEMPLATE = '''
         });
 
         function initializeApp() {
-            console.log('DealHub India - Multi-Page Marketplace Initialized');
+            console.log('TradeHub India - Multi-Page Marketplace Initialized');
         }
 
         // Page Management
@@ -10823,7 +10812,6 @@ PRODUCTION_HTML_TEMPLATE = '''
                 if (e.key === 'ArrowRight') nextPhoto();
             }
         });
-
         console.log('🎉 Enhanced Multi-Page Marketplace Loaded Successfully!');
         console.log('Features: Category pages, Photo highlights, Advanced upload system');
     </script>
