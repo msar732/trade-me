@@ -1,0 +1,50 @@
+# ==================== TRADE HUB REQUIREMENTS ====================
+# Core Flask Framework
+Flask==2.3.3
+Flask-CORS==4.0.0
+Flask-Limiter==3.5.0
+Werkzeug==2.3.7
+
+# Database
+SQLAlchemy==2.0.21
+Flask-SQLAlchemy==3.0.5
+
+# Authentication & Security
+email-validator==2.0.0
+bcrypt==4.0.1
+
+# AI/ML Libraries
+numpy==1.24.3
+pandas==2.0.3
+scikit-learn==1.3.0
+
+# Web Scraping
+requests==2.31.0
+beautifulsoup4==4.12.2
+urllib3==2.0.4
+
+# Caching & Performance
+redis==4.6.0
+Flask-Caching==2.0.2
+
+# Data Processing
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Development & Testing
+pytest==7.4.2
+pytest-flask==1.2.0
+
+# Production Server
+gunicorn==21.2.0
+
+# Optional: MongoDB Support
+pymongo==4.5.0
+
+# Optional: Hindi Language Support
+googletrans==4.0.0rc1
+
+# Optional: Advanced AI
+tensorflow==2.13.0
+torch==2.0.1
+transformers==4.33.2
